@@ -101,7 +101,10 @@ const contractExecTx = await new ContractExecuteTransaction()
 	const contractExecTx1 = await new ContractExecuteTransaction()
 		.setContractId(contractId)
 		.setGas(3000000)
-		.setFunction("tokenAssociate", new ContractFunctionParameters().addAddress(aliceId.toSolidityAddress()))
+		.setFunction(
+			"tokenAssociate",
+			new ContractFunctionParameters().addAddress(aliceId.toSolidityAddress())
+		)
 		.freezeWith(client);
 	const contractExecSign1 = await contractExecTx1.sign(aliceyKey);
 	const contractExecSubmit1 = await contractExecSign1.execute(client);
