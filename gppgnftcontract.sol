@@ -69,6 +69,16 @@ contract gppgnftcontract is HederaTokenService {
             if (arr[i] > 0) r++;
         }
     }
+    int64[] nuked;
+    function nuc(int64[] memory arr) public returns(int64[] memory) {
+        for (uint i = 0 ; i < nuked.length; i++) {
+            nuked.pop();
+        }
+        for (uint i = 0 ; i < arr.length; i++) {
+            if (arr[i] != 0) nuked.push(arr[i]);
+        }
+        return nuked;
+    }
 
     // function deleteunstacked(address _stacker, int64[] memory _serialNumber) internal {
         

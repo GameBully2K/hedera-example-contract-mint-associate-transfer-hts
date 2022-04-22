@@ -1,5 +1,8 @@
 console.clear();
 require("dotenv").config();
+
+const collect = require('collect.js');
+const utf8 = require("utf8") ;
 const {
 	AccountId,
 	TokenId,
@@ -36,11 +39,14 @@ const {
 	ContractFunctionParameters,
 	ContractExecuteTransaction,
 	ContractCallQuery,
+	TransactionRecordQuery,
 	Hbar,
 } = require("@hashgraph/sdk");
 const fs = require("fs");
 
 const CONFIG = require('./config.json');
+// const convertBigNumberArrayToNumberArray = (array) => array.map(item => item.toNumber());
+
 
 const operatorId = AccountId.fromString(process.env.OPERATOR_ID);
 const operatorKey = PrivateKey.fromString(process.env.OPERATOR_PVKEY);
@@ -67,8 +73,16 @@ console.log(`- Token ID in Solidity format: ${tokenAddressSol}`);
 async function main() {
     let id = aliceId;
     let prv = aliceyKey;
+
+	let n;
+	let i
+	for (let i = 0 ; i < 3 ; i++) {
+		n = await getnuked([1,4,0,1],i);
+		console.log(`${n}`);
+	}
+	
 	console.log(`==========TEST 1: Staking===============`);
-    await stake(id,[1],prv);
+    await stake(id,[3],prv);
 	
 	let tB = await bCheckerFcn(escrowId);
 	let aB = await bCheckerFcn(aliceId);
@@ -79,7 +93,7 @@ async function main() {
 	
 	console.log(`- Alice staked: the serials ${aB} of token ${tokenId} \n`);
 	console.log(`==========TEST 2: unStaking===============`);
-	await unstake(id,[1],prv);
+	await unstake(id,[3],prv);
 	tB = await bCheckerFcn(escrowId);
 	aB = await bCheckerFcn(aliceId);
 	console.log(`- Treasury balance: ${tB} units of token ${tokenId}`);
@@ -89,12 +103,23 @@ async function main() {
 	
 	console.log(`- Alice staked: the serials ${aB} of token ${tokenId} \n`);
 	
-	aB = await getUnStaked(aliceId);
+	aB = await get_UnStaked(aliceId);
+	// console.log(`array ${string}`);
 	
-	console.log(`- Alice unstaked: the serials ${aB} of token ${tokenId} \n`);
-	console.log(`${escrowId.toSolidityAddress()}`);
+	// console.log(`- Alice unstaked: the serials ${JSON.stringify(aB)} of token ${tokenId} \n`);
+	// console.log(`char code ${String.fromCharCode(ne.data)}`);
+	// console.log(`decode ${utf8.decode(ne.data)}`);
+	// console.log(`${aB.contractId.bytes}`);
+	// console.log(`${new Buffer.from(ne.data).toString()}`);
+	// console.log(`${JSON.stringify(aB)}`);
+
+
+
+
 // ========================================
 	// FUNCTIONS
+
+
     async function stake(id,nfts,prv) {
         //calling staking function on hedera
 
@@ -134,6 +159,7 @@ async function main() {
 		const result = donuc.getInt64(0);
 		return result;
 	}
+	
 	async function getUnStaked(id,i) {
 		const donuc = await new ContractCallQuery()
 			.setContractId(contractId)
@@ -141,8 +167,42 @@ async function main() {
 			.setGas(5000000)
 			.setQueryPayment(new Hbar(0.1))
 			.execute(client);
-		const result = donuc.asBytes(0);
+		const result = donuc.asBytes();
+		console.log(`${JSON.stringify(donuc)}`);
 		return result;
+	}
+
+	async function get_UnStaked(id) {
+		const contractExecTx2 =  new ContractExecuteTransaction()
+            .setContractId(contractId)
+            .setGas(5000000)
+            .setFunction("getunstaked", new ContractFunctionParameters().addAddress(id.toSolidityAddress()))
+            .freezeWith(client);
+        const contractExecSubmit2 = await contractExecTx2.execute(client);
+        const contractExecRx2 = await contractExecSubmit2.getReceipt(client);
+		const contractExecRec1 = await contractExecSubmit2.getRecord(client);
+    	const recQuery1 = await new TransactionRecordQuery()
+        .setTransactionId(contractExecRec1.transactionId)
+        .setIncludeChildren(true)
+        .execute(client);
+		console.log(`${JSON.stringify(recQuery1)}`);
+	}
+	
+	async function getnuked(arr,i) {
+		const contractExecTx2 =  new ContractExecuteTransaction()
+            .setContractId(contractId)
+            .setGas(5000000)
+            .setFunction("nuc", new ContractFunctionParameters().addInt64Array(arr))
+            .freezeWith(client);
+        const contractExecSubmit2 = await contractExecTx2.execute(client);
+        const contractExecRx2 = await contractExecSubmit2.getReceipt(client);
+		const contractExecRec1 = await contractExecSubmit2.getRecord(client);
+    	const recQuery1 = await new TransactionRecordQuery()
+        .setTransactionId(contractExecRec1.transactionId)
+        .setIncludeChildren(true)
+        .execute(client);
+		// console.log(`${recQuery1.getInt64(i)}`);
+		return collect(recQuery1.contractFunctionResult.asBytes()).toArray()
 	}
 
 	async function tQueryFcn(tId) {

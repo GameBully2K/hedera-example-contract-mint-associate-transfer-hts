@@ -7,8 +7,12 @@
 	"license": "ISC",
 	"dependencies": {
 		"@buidlerlabs/hedera-strato-js": "^0.7.4",
+		"@hashgraph/hethers": "^1.1.0",
 		"@hashgraph/sdk": "^2.7.0",
-		"dotenv": "^14.2.0"
+		"collect": "^0.3.5",
+		"collect.js": "^4.32.0",
+		"dotenv": "^14.2.0",
+		"utf8": "^3.0.0"
 	},
 	"description": "",
 	"devDependencies": {
